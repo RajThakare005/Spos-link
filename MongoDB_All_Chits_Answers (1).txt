@@ -1,0 +1,75 @@
+Chit 9 – orderinfo collection
+use mydb; db.createCollection("orderinfo"); db.orderinfo.insertMany([{cust_id:123,cust_name:"abc",status:"A",price:250},{cust_id:124,cust_name:"xyz",status:"B",price:700},{cust_id:125,cust_name:"pqr",status:"A",price:500}]);
+//Q1 avg price for each customer with status A db.orderinfo.aggregate([{$match:{status:"A"}},{$group:{_id:"$cust_id",avgPrice:{$avg:"$price"}}}]);
+//Q2 status for price between 100 and 1000 db.orderinfo.find({price:{$gte:100,$lte:1000}},{status:1});
+//Q3 customers info without _id db.orderinfo.find({},{_id:0});
+//Q4 create index db.orderinfo.createIndex({cust_id:1}); db.orderinfo.getIndexes();
+
+Chit 13 – movies collection
+use moviedb; db.createCollection("movies"); db.movies.insertMany([{name:"Movie1",type:"action",budget:1000000,producer:{name:"producer1",address:"PUNE"}},{name:"Movie2",type:"drama",budget:80000,producer:{name:"producer2",address:"MUMBAI"}}]);
+//Q1 movie budget>100000 db.movies.find({budget:{$gt:100000}},{name:1});
+//Q2 producer lives in Pune db.movies.find({"producer.address":"PUNE"},{"producer.name":1});
+//Q3 update type action→horror db.movies.updateMany({type:"action"},{$set:{type:"horror"}});
+//Q4 movies by producer1 db.movies.find({"producer.name":"producer1"},{"producer":1});
+
+Chit 14 – Teachers, Department, Students
+use collegedb; db.createCollection("teachers"); db.createCollection("department"); db.createCollection("students"); db.teachers.insertMany([{Tname:"Amit",dno:1,Experience:5,Salary:12000,Date_of_Joining:"2020-02-02"},{Tname:"Ravi",dno:2,Experience:3,Salary:9000,Date_of_Joining:"2021-03-03"}]); db.department.insertMany([{Dno:1,Dname:"CS"},{Dno:2,Dname:"IT"}]); db.students.insertMany([{Sname:"xyz",Roll_No:2,Class:"SE"},{Sname:"abc",Roll_No:5,Class:"FE"}]);
+//Q1 create+insert above done
+//Q2 teachers dno=2 salary>=10000 db.teachers.find({dno:2,Salary:{$gte:10000}});
+//Q3 student Roll_no=2 or name xyz db.students.find({$or:[{Roll_No:2},{Sname:"xyz"}]});
+//Q4 update student name roll_no=5 db.students.updateOne({Roll_No:5},{$set:{Sname:"updated"}});
+//Q5 delete class FE db.students.deleteMany({Class:"FE"});
+//Q6 index db.students.createIndex({Sname:1});
+
+Chit 15 – Institute→Students
+use institute; db.createCollection("students"); db.students.insertMany([{RollNo:1,StudentName:"Amit",Age:16,Branch:"CS",Address:{City:"Pune",State:"MH"},Hobbies:["Reading","Music"]},{RollNo:2,StudentName:"Ravi",Age:17,Branch:"IT",Address:{City:"Nashik",State:"MH"},Hobbies:["Cricket"]},{RollNo:3,StudentName:"Ankita",Age:18,Branch:"Computer",Address:{City:"Pune",State:"MH"},Hobbies:["Dance"]}]);
+//Q4 display all db.students.find();
+//Q5 age>15 db.students.find({Age:{$gt:15}});
+//Q6 sort by name db.students.find().sort({StudentName:1});
+//Q7 update branch computer rollno3 db.students.updateOne({RollNo:3},{$set:{Branch:"Computer"}});
+//Q8 remove rollno1 db.students.deleteOne({RollNo:1});
+//Q9 name starts with A db.students.find({StudentName:/^A/});
+//Q10 count docs db.students.countDocuments();
+//Q11 first5 db.students.find().limit(5);
+//Q12 all except first3 db.students.find().skip(3);
+//Q13 Pune students db.students.find({"Address.City":"Pune"});
+//Q14 only names db.students.find({},{StudentName:1,_id:0});
+//Q15 drop collection db.students.drop();
+
+Chit 16 – department db with aggregation & indexing
+use department; db.createCollection("teacher"); db.teacher.insertMany([{name:"Amit",department:"CS",experience:5,salary:20000},{name:"Rita",department:"IT",experience:3,salary:15000},{name:"Raj",department:"CS",experience:7,salary:25000}]);
+//Q3 dept wise avg salary db.teacher.aggregate([{$group:{_id:"$department",avgSal:{$avg:"$salary"}}}]);
+//Q4 count of employees per dept db.teacher.aggregate([{$group:{_id:"$department",count:{$sum:1}}}]);
+//Q5 dept wise min salary db.teacher.aggregate([{$group:{_id:"$department",minSal:{$min:"$salary"}}}]);
+//Q6 index+drop db.teacher.createIndex({department:1}); db.teacher.dropIndex("department_1");
+
+Chit 18 – city mapreduce
+use citydb; db.createCollection("city"); db.city.insertMany([{city:"pune",type:"urban",state:"MH",population:5600000},{city:"nashik",type:"urban",state:"MH",population:1800000},{city:"nagpur",type:"urban",state:"MH",population:2400000}]);
+//Q1 statewise population db.city.mapReduce(function(){emit(this.state,this.population);},function(key,vals){return Array.sum(vals);},{out:"statepop"}); db.statepop.find();
+//Q2 citywise db.city.mapReduce(function(){emit(this.city,this.population);},function(key,vals){return Array.sum(vals);},{out:"citypop"}); db.citypop.find();
+//Q3 typewise db.city.mapReduce(function(){emit(this.type,this.population);},function(key,vals){return Array.sum(vals);},{out:"typepop"}); db.typepop.find();
+
+Chit 20 – Indexing + Aggregation
+use mongoagg; db.createCollection("student"); db.student.insertMany([{Rollno:1,name:"Navin",subject:"DMSA",marks:78},{Rollno:2,name:"Anusha",subject:"OSD",marks:75},{Rollno:3,name:"Ravi",subject:"TOC",marks:69},{Rollno:4,name:"Veena",subject:"TOC",marks:70},{Rollno:5,name:"Pravini",subject:"OSD",marks:80},{Rollno:6,name:"Reena",subject:"DMSA",marks:50},{Rollno:7,name:"Geeta",subject:"CN",marks:90},{Rollno:8,name:"Akash",subject:"CN",marks:85}]);
+//Q1 max marks db.student.aggregate([{$group:{_id:"$subject",maxMarks:{$max:"$marks"}}}]);
+//Q2 min marks db.student.aggregate([{$group:{_id:"$subject",minMarks:{$min:"$marks"}}}]);
+//Q3 sum db.student.aggregate([{$group:{_id:"$subject",sumMarks:{$sum:"$marks"}}}]);
+//Q4 avg db.student.aggregate([{$group:{_id:"$subject",avgMarks:{$avg:"$marks"}}}]);
+//Q5 first record db.student.aggregate([{$group:{_id:"$subject",firstRec:{$first:"$name"}}}]);
+//Q6 last record db.student.aggregate([{$group:{_id:"$subject",lastRec:{$last:"$name"}}}]);
+//Q7 count db.student.aggregate([{$group:{_id:"$subject",count:{$sum:1}}}]);
+//Index db.student.createIndex({name:1}); db.student.createIndex({subject:1,marks:-1});
+
+Chit 21 – orderinfo complex index
+use orderdb; db.createCollection("orderinfo"); db.orderinfo.insertMany([{cust_id:123,cust_name:"abc",status:"A",price:250},{cust_id:124,cust_name:"xyz",status:"B",price:450}]);
+//Q1 add Age db.orderinfo.updateMany({},{$set:{Age:25}});
+//Q2 create complex index db.orderinfo.createIndex({cust_id:1,status:1},{unique:true,dropDups:true});
+//Q3 avg price per customer group by status db.orderinfo.aggregate([{$group:{_id:"$status",avgPrice:{$avg:"$price"}}}]);
+//Q4 change name where status B db.orderinfo.updateMany({status:"B"},{$set:{cust_name:"updated"}});
+
+Chit 22 – orderinfo updates
+use ordertest; db.createCollection("orderinfo"); db.orderinfo.insertMany([{cust_id:123,cust_name:"abc",status:"A",price:250},{cust_id:124,cust_name:"pqr",status:"B",price:400}]);
+//Q1 price 250-450 db.orderinfo.find({price:{$gte:250,$lte:450}},{cust_name:1});
+//Q2 increment/decrement db.orderinfo.updateOne({cust_id:123},{$inc:{price:10}}); db.orderinfo.updateOne({cust_id:124},{$inc:{price:-5}});
+//Q3 remove one field db.orderinfo.updateMany({},{$unset:{status:""}});
+//Q4 name whose status A or price=250 db.orderinfo.find({$or:[{status:"A"},{price:250}]},{cust_name:1});
