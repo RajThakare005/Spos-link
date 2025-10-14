@@ -1,0 +1,50 @@
+Chit 1 – Customer & Account (Joins and Subqueries)
+CREATE TABLE customer(c_id INT PRIMARY KEY,cname VARCHAR(20),city VARCHAR(20)); CREATE TABLE account(acc_no INT PRIMARY KEY,c_id INT,acc_type VARCHAR(20),amount INT,FOREIGN KEY(c_id) REFERENCES customer(c_id)); INSERT INTO customer VALUES(1,'pooja','pune'),(2,'raj','mumbai'),(3,'amit','pune'),(4,'sita','nashik'); INSERT INTO account VALUES(101,1,'saving',25000),(102,2,'current',30000),(103,3,'saving',15000),(104,4,'fixed',50000);
+--Q1 cname, acc_type, amount of saving account SELECT c.cname,a.acc_type,a.amount FROM customer c JOIN account a ON c.c_id=a.c_id WHERE a.acc_type='saving';
+--Q2 Display data using joins SELECT * FROM customer NATURAL JOIN account; SELECT * FROM customer LEFT JOIN account ON customer.c_id=account.c_id; SELECT * FROM customer RIGHT JOIN account ON customer.c_id=account.c_id;
+--Q3 Customers living in same city as pooja SELECT * FROM customer WHERE city=(SELECT city FROM customer WHERE cname='pooja');
+--Q4 Accounts less than average SELECT * FROM account WHERE amount<(SELECT AVG(amount) FROM account);
+--Q5 C_id having maximum amount SELECT c_id FROM account WHERE amount=(SELECT MAX(amount) FROM account);
+--Q6 Minimum amount per acc_type SELECT acc_type,MIN(amount) FROM account GROUP BY acc_type;
+--Q7 Accounts whose amount higher than any saving SELECT * FROM account WHERE amount>ANY(SELECT amount FROM account WHERE acc_type='saving');
+
+Chit 4 – student,instructor,course
+CREATE TABLE student(s_id INT PRIMARY KEY,name VARCHAR(20),dept_name VARCHAR(20),tot_cred INT); CREATE TABLE instructor(t_id INT PRIMARY KEY,name VARCHAR(20),dept_name VARCHAR(20),salary INT); CREATE TABLE course(course_id INT PRIMARY KEY,title VARCHAR(20),dept_name VARCHAR(20),credits INT); INSERT INTO instructor VALUES(1,'Amol','computer',40000),(2,'Amit','mechanical',45000),(3,'Sneha','computer',47000); INSERT INTO student VALUES(1,'Ravi','computer',100),(2,'Ram','mechanical',90),(3,'Aman','computer',80);
+--Q1 avg salary>42000 SELECT dept_name,AVG(salary) FROM instructor GROUP BY dept_name HAVING AVG(salary)>42000;
+--Q2 increase salary 10% computer UPDATE instructor SET salary=salary*1.1 WHERE dept_name='computer';
+--Q3 names neither Amol nor Amit SELECT name FROM instructor WHERE name NOT IN('Amol','Amit');
+--Q4 names containing 'am' SELECT name FROM student WHERE name LIKE '%am%';
+--Q5 students from computer taking DBMS SELECT name FROM student WHERE dept_name='computer' AND s_id IN(SELECT s_id FROM course WHERE title='DBMS');
+
+Chit 17 – Employee & Project
+CREATE TABLE employee(emp_id INT PRIMARY KEY,ename VARCHAR(20),city VARCHAR(20),salary INT,commission INT); CREATE TABLE project(p_id INT PRIMARY KEY,pname VARCHAR(20),city VARCHAR(20)); INSERT INTO employee VALUES(1,'Amit','pune',25000,NULL),(2,'Rita','nashik',30000,2000),(3,'Sita','mumbai',28000,NULL),(4,'Raj','pune',32000,1000); INSERT INTO project VALUES(1,'Alpha','pune'),(2,'Beta','mumbai'),(3,'Gamma','nashik');
+--Q1 different locations SELECT DISTINCT city FROM employee;
+--Q2 max min salary SELECT MAX(salary),MIN(salary) FROM employee;
+--Q3 order by salary SELECT * FROM employee ORDER BY salary;
+--Q4 employees in Nasik or Pune SELECT ename FROM employee WHERE city IN('nashik','pune');
+--Q5 employees with no commission SELECT ename FROM employee WHERE commission IS NULL;
+--Q6 change city of Amit UPDATE employee SET city='nashik' WHERE ename='Amit';
+--Q7 names starting with A SELECT * FROM employee WHERE ename LIKE 'A%';
+--Q8 count staff from mumbai SELECT COUNT(*) FROM employee WHERE city='mumbai';
+--Q9 count staff from each city SELECT city,COUNT(*) FROM employee GROUP BY city;
+--Q10 addresses of employee and projects SELECT e.city AS emp_city,p.city AS proj_city FROM employee e,project p;
+--Q11 city wise min salary SELECT city,MIN(salary) FROM employee GROUP BY city;
+--Q12 city wise max salary>26000 SELECT city,MAX(salary) FROM employee GROUP BY city HAVING MAX(salary)>26000;
+--Q13 delete salary>30000 DELETE FROM employee WHERE salary>30000;
+
+Chit 19 – emp table, constraints, view, index
+CREATE TABLE emp(eno INT PRIMARY KEY,ename VARCHAR(20) NOT NULL,address VARCHAR(20) DEFAULT 'Nashik',joindate DATE,salary INT); ALTER TABLE emp ADD post VARCHAR(20); INSERT INTO emp VALUES(101,'Amit','pune','2022-01-01',25000,'clerk'),(102,'Rita','nashik','2023-02-02',30000,'manager'); CREATE INDEX idx_ename ON emp(ename); CREATE VIEW emp_view AS SELECT ename,salary FROM emp;
+
+Chit 24 – Emp, Works, Company, Manager
+CREATE TABLE emp(emp_id INT,ename VARCHAR(20),street VARCHAR(20),city VARCHAR(20)); CREATE TABLE company(c_id INT,cname VARCHAR(20),city VARCHAR(20)); CREATE TABLE works(emp_id INT,c_id INT,ename VARCHAR(20),cname VARCHAR(20),sal INT); CREATE TABLE manager(mgr_id INT,mgrname VARCHAR(20)); INSERT INTO company VALUES(1,'ABC','mumbai'),(2,'Mbank','pune'),(3,'Bosch','pune'),(4,'SBC','nashik'); INSERT INTO works VALUES(1,2,'Amit','Mbank',18000),(2,3,'Ravi','Bosch',25000),(3,4,'Sita','SBC',52000);
+--Q1 modify company ABC city UPDATE company SET city='pune' WHERE cname='ABC';
+--Q2 raise Mbank managers UPDATE works SET sal=CASE WHEN sal>20000 THEN sal*1.03 ELSE sal*1.1 END WHERE cname='Mbank';
+--Q3 employees working in Bosch Pune SELECT ename FROM works WHERE cname='Bosch' AND emp_id IN(SELECT emp_id FROM emp WHERE city='pune');
+--Q4 delete SBC >50000 DELETE FROM works WHERE cname='SBC' AND sal>50000;
+
+Chit 25 – Empl, Position, Duty_alloc
+CREATE TABLE empl(e_no INT PRIMARY KEY,e_name VARCHAR(20),post VARCHAR(20),pay_rate INT); CREATE TABLE position(pos_no INT PRIMARY KEY,post VARCHAR(20)); CREATE TABLE duty_alloc(pos_no INT,e_no INT,month VARCHAR(10),year INT,shift VARCHAR(10)); INSERT INTO empl VALUES(123,'Sachin','manager',25000),(124,'Ravi','clerk',18000),(125,'Neha','manager',27000); INSERT INTO position VALUES(1,'manager'),(2,'clerk'); INSERT INTO duty_alloc VALUES(1,123,'April',2003,'first'),(2,124,'April',2003,'second');
+--Q1 duty alloc details SELECT * FROM duty_alloc WHERE e_no=123 AND shift='first' AND month='April' AND year=2003;
+--Q2 pay rate>=Sachin SELECT * FROM empl WHERE pay_rate>=(SELECT pay_rate FROM empl WHERE e_name='Sachin');
+--Q3 view for min,max,avg pay CREATE VIEW salary_stat AS SELECT post,MIN(pay_rate) AS minsal,MAX(pay_rate) AS maxsal,AVG(pay_rate) AS avgsal FROM empl GROUP BY post;
+--Q4 count emp per shift manager SELECT shift,COUNT(*) FROM duty_alloc d JOIN empl e ON d.e_no=e.e_no WHERE e.post='manager' GROUP BY shift;
