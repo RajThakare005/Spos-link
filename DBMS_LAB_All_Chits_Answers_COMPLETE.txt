@@ -1,0 +1,248 @@
+=== COMPLETE DBMS LAB CHITS ANSWERS (MySQL + PL/SQL + MongoDB + Java) ===
+
+--------------------------------------
+SECTION 1: MYSQL CHITS ANSWERS
+--------------------------------------
+
+Chit 1 – Customer & Account (Joins and Subqueries)
+CREATE TABLE customer(c_id INT PRIMARY KEY,cname VARCHAR(20),city VARCHAR(20)); CREATE TABLE account(acc_no INT PRIMARY KEY,c_id INT,acc_type VARCHAR(20),amount INT,FOREIGN KEY(c_id) REFERENCES customer(c_id)); INSERT INTO customer VALUES(1,'pooja','pune'),(2,'raj','mumbai'),(3,'amit','pune'),(4,'sita','nashik'); INSERT INTO account VALUES(101,1,'saving',25000),(102,2,'current',30000),(103,3,'saving',15000),(104,4,'fixed',50000);
+--Q1 cname, acc_type, amount of saving account SELECT c.cname,a.acc_type,a.amount FROM customer c JOIN account a ON c.c_id=a.c_id WHERE a.acc_type='saving';
+--Q2 Display data using joins SELECT * FROM customer NATURAL JOIN account; SELECT * FROM customer LEFT JOIN account ON customer.c_id=account.c_id; SELECT * FROM customer RIGHT JOIN account ON customer.c_id=account.c_id;
+--Q3 Customers living in same city as pooja SELECT * FROM customer WHERE city=(SELECT city FROM customer WHERE cname='pooja');
+--Q4 Accounts less than average SELECT * FROM account WHERE amount<(SELECT AVG(amount) FROM account);
+--Q5 C_id having maximum amount SELECT c_id FROM account WHERE amount=(SELECT MAX(amount) FROM account);
+--Q6 Minimum amount per acc_type SELECT acc_type,MIN(amount) FROM account GROUP BY acc_type;
+--Q7 Accounts whose amount higher than any saving SELECT * FROM account WHERE amount>ANY(SELECT amount FROM account WHERE acc_type='saving');
+
+Chit 4 – student,instructor,course
+CREATE TABLE student(s_id INT PRIMARY KEY,name VARCHAR(20),dept_name VARCHAR(20),tot_cred INT); CREATE TABLE instructor(t_id INT PRIMARY KEY,name VARCHAR(20),dept_name VARCHAR(20),salary INT); CREATE TABLE course(course_id INT PRIMARY KEY,title VARCHAR(20),dept_name VARCHAR(20),credits INT); INSERT INTO instructor VALUES(1,'Amol','computer',40000),(2,'Amit','mechanical',45000),(3,'Sneha','computer',47000); INSERT INTO student VALUES(1,'Ravi','computer',100),(2,'Ram','mechanical',90),(3,'Aman','computer',80);
+--Q1 avg salary>42000 SELECT dept_name,AVG(salary) FROM instructor GROUP BY dept_name HAVING AVG(salary)>42000;
+--Q2 increase salary 10% computer UPDATE instructor SET salary=salary*1.1 WHERE dept_name='computer';
+--Q3 names neither Amol nor Amit SELECT name FROM instructor WHERE name NOT IN('Amol','Amit');
+--Q4 names containing 'am' SELECT name FROM student WHERE name LIKE '%am%';
+--Q5 students from computer taking DBMS SELECT name FROM student WHERE dept_name='computer' AND s_id IN(SELECT s_id FROM course WHERE title='DBMS');
+
+Chit 17 – Employee & Project
+CREATE TABLE employee(emp_id INT PRIMARY KEY,ename VARCHAR(20),city VARCHAR(20),salary INT,commission INT); CREATE TABLE project(p_id INT PRIMARY KEY,pname VARCHAR(20),city VARCHAR(20)); INSERT INTO employee VALUES(1,'Amit','pune',25000,NULL),(2,'Rita','nashik',30000,2000),(3,'Sita','mumbai',28000,NULL),(4,'Raj','pune',32000,1000); INSERT INTO project VALUES(1,'Alpha','pune'),(2,'Beta','mumbai'),(3,'Gamma','nashik');
+--Q1 different locations SELECT DISTINCT city FROM employee;
+--Q2 max min salary SELECT MAX(salary),MIN(salary) FROM employee;
+--Q3 order by salary SELECT * FROM employee ORDER BY salary;
+--Q4 employees in Nasik or Pune SELECT ename FROM employee WHERE city IN('nashik','pune');
+--Q5 employees with no commission SELECT ename FROM employee WHERE commission IS NULL;
+--Q6 change city of Amit UPDATE employee SET city='nashik' WHERE ename='Amit';
+--Q7 names starting with A SELECT * FROM employee WHERE ename LIKE 'A%';
+--Q8 count staff from mumbai SELECT COUNT(*) FROM employee WHERE city='mumbai';
+--Q9 count staff from each city SELECT city,COUNT(*) FROM employee GROUP BY city;
+--Q10 addresses of employee and projects SELECT e.city AS emp_city,p.city AS proj_city FROM employee e,project p;
+--Q11 city wise min salary SELECT city,MIN(salary) FROM employee GROUP BY city;
+--Q12 city wise max salary>26000 SELECT city,MAX(salary) FROM employee GROUP BY city HAVING MAX(salary)>26000;
+--Q13 delete salary>30000 DELETE FROM employee WHERE salary>30000;
+
+Chit 19 – emp table, constraints, view, index
+CREATE TABLE emp(eno INT PRIMARY KEY,ename VARCHAR(20) NOT NULL,address VARCHAR(20) DEFAULT 'Nashik',joindate DATE,salary INT); ALTER TABLE emp ADD post VARCHAR(20); INSERT INTO emp VALUES(101,'Amit','pune','2022-01-01',25000,'clerk'),(102,'Rita','nashik','2023-02-02',30000,'manager'); CREATE INDEX idx_ename ON emp(ename); CREATE VIEW emp_view AS SELECT ename,salary FROM emp;
+
+Chit 24 – Emp, Works, Company, Manager
+CREATE TABLE emp(emp_id INT,ename VARCHAR(20),street VARCHAR(20),city VARCHAR(20)); CREATE TABLE company(c_id INT,cname VARCHAR(20),city VARCHAR(20)); CREATE TABLE works(emp_id INT,c_id INT,ename VARCHAR(20),cname VARCHAR(20),sal INT); CREATE TABLE manager(mgr_id INT,mgrname VARCHAR(20)); INSERT INTO company VALUES(1,'ABC','mumbai'),(2,'Mbank','pune'),(3,'Bosch','pune'),(4,'SBC','nashik'); INSERT INTO works VALUES(1,2,'Amit','Mbank',18000),(2,3,'Ravi','Bosch',25000),(3,4,'Sita','SBC',52000);
+--Q1 modify company ABC city UPDATE company SET city='pune' WHERE cname='ABC';
+--Q2 raise Mbank managers UPDATE works SET sal=CASE WHEN sal>20000 THEN sal*1.03 ELSE sal*1.1 END WHERE cname='Mbank';
+--Q3 employees working in Bosch Pune SELECT ename FROM works WHERE cname='Bosch' AND emp_id IN(SELECT emp_id FROM emp WHERE city='pune');
+--Q4 delete SBC >50000 DELETE FROM works WHERE cname='SBC' AND sal>50000;
+
+Chit 25 – Empl, Position, Duty_alloc
+CREATE TABLE empl(e_no INT PRIMARY KEY,e_name VARCHAR(20),post VARCHAR(20),pay_rate INT); CREATE TABLE position(pos_no INT PRIMARY KEY,post VARCHAR(20)); CREATE TABLE duty_alloc(pos_no INT,e_no INT,month VARCHAR(10),year INT,shift VARCHAR(10)); INSERT INTO empl VALUES(123,'Sachin','manager',25000),(124,'Ravi','clerk',18000),(125,'Neha','manager',27000); INSERT INTO position VALUES(1,'manager'),(2,'clerk'); INSERT INTO duty_alloc VALUES(1,123,'April',2003,'first'),(2,124,'April',2003,'second');
+--Q1 duty alloc details SELECT * FROM duty_alloc WHERE e_no=123 AND shift='first' AND month='April' AND year=2003;
+--Q2 pay rate>=Sachin SELECT * FROM empl WHERE pay_rate>=(SELECT pay_rate FROM empl WHERE e_name='Sachin');
+--Q3 view for min,max,avg pay CREATE VIEW salary_stat AS SELECT post,MIN(pay_rate) AS minsal,MAX(pay_rate) AS maxsal,AVG(pay_rate) AS avgsal FROM empl GROUP BY post;
+--Q4 count emp per shift manager SELECT shift,COUNT(*) FROM duty_alloc d JOIN empl e ON d.e_no=e.e_no WHERE e.post='manager' GROUP BY shift;
+
+--------------------------------------
+SECTION 2: PLSQL CHITS ANSWERS
+--------------------------------------
+
+Chit 2 – Borrower fine calculation (Control + Exception)
+DECLARE v_roll borrower.rollin%TYPE; v_book borrower.nameofbook%TYPE; v_days NUMBER; v_fine NUMBER; v_status borrower.status%TYPE; v_date DATE; BEGIN v_roll := &rollno; v_book := '&nameofbook'; SELECT (SYSDATE - dateofissue), status INTO v_days, v_status FROM borrower WHERE rollin = v_roll AND nameofbook = v_book; IF v_days BETWEEN 15 AND 30 THEN v_fine := v_days * 5; ELSIF v_days > 30 THEN v_fine := v_days * 50; ELSE v_fine := 0; END IF; UPDATE borrower SET status = 'R' WHERE rollin = v_roll AND nameofbook = v_book; IF v_fine > 0 THEN INSERT INTO fine VALUES (v_roll, SYSDATE, v_fine); DBMS_OUTPUT.PUT_LINE('Fine recorded: Rs ' || v_fine); ELSE DBMS_OUTPUT.PUT_LINE('No fine applicable.'); END IF; EXCEPTION WHEN NO_DATA_FOUND THEN DBMS_OUTPUT.PUT_LINE('No record found for entered Roll No and Book.'); WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM); END;
+
+Chit 3 – Attendance Term Granted or Not
+DECLARE v_roll stud.roll%TYPE; v_att stud.att%TYPE; BEGIN v_roll := &roll; SELECT att INTO v_att FROM stud WHERE roll = v_roll; IF v_att < 75 THEN UPDATE stud SET status = 'D' WHERE roll = v_roll; DBMS_OUTPUT.PUT_LINE('Term not granted'); ELSE UPDATE stud SET status = 'ND' WHERE roll = v_roll; DBMS_OUTPUT.PUT_LINE('Term granted'); END IF; EXCEPTION WHEN NO_DATA_FOUND THEN DBMS_OUTPUT.PUT_LINE('Student not found.'); WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM); END;
+
+Chit 5 – Merge N_RollCall into O_RollCall using Cursor
+DECLARE CURSOR c1 IS SELECT roll_no, name FROM n_rollcall; v_roll n_rollcall.roll_no%TYPE; v_name n_rollcall.name%TYPE; v_count NUMBER; BEGIN OPEN c1; LOOP FETCH c1 INTO v_roll, v_name; EXIT WHEN c1%NOTFOUND; SELECT COUNT(*) INTO v_count FROM o_rollcall WHERE roll_no = v_roll; IF v_count = 0 THEN INSERT INTO o_rollcall VALUES (v_roll, v_name); DBMS_OUTPUT.PUT_LINE('Inserted Roll: ' || v_roll); ELSE DBMS_OUTPUT.PUT_LINE('Duplicate skipped Roll: ' || v_roll); END IF; END LOOP; CLOSE c1; EXCEPTION WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM); END;
+
+Chit 6 – Procedure proc_Grade for Student Categorization
+CREATE OR REPLACE PROCEDURE proc_grade(p_name IN VARCHAR2, p_marks IN NUMBER) IS v_class VARCHAR2(20); BEGIN IF p_marks BETWEEN 990 AND 1500 THEN v_class := 'Distinction'; ELSIF p_marks BETWEEN 900 AND 989 THEN v_class := 'First Class'; ELSIF p_marks BETWEEN 825 AND 899 THEN v_class := 'Higher Second'; ELSE v_class := 'Fail'; END IF; INSERT INTO result VALUES (result_seq.NEXTVAL, p_name, v_class); END; / DECLARE v_name stud_marks.name%TYPE; v_marks stud_marks.total_marks%TYPE; BEGIN v_name := '&name'; SELECT total_marks INTO v_marks FROM stud_marks WHERE name = v_name; proc_grade(v_name, v_marks); DBMS_OUTPUT.PUT_LINE('Grade stored successfully'); EXCEPTION WHEN NO_DATA_FOUND THEN DBMS_OUTPUT.PUT_LINE('Student not found.'); END;
+
+Chit 7 – Stored Function version of Grade Categorization
+CREATE OR REPLACE FUNCTION func_grade(p_marks IN NUMBER) RETURN VARCHAR2 IS v_class VARCHAR2(20); BEGIN IF p_marks BETWEEN 990 AND 1500 THEN v_class := 'Distinction'; ELSIF p_marks BETWEEN 900 AND 989 THEN v_class := 'First Class'; ELSIF p_marks BETWEEN 825 AND 899 THEN v_class := 'Higher Second'; ELSE v_class := 'Fail'; END IF; RETURN v_class; END; / DECLARE v_name stud_marks.name%TYPE; v_marks stud_marks.total_marks%TYPE; v_result VARCHAR2(20); BEGIN v_name := '&name'; SELECT total_marks INTO v_marks FROM stud_marks WHERE name = v_name; v_result := func_grade(v_marks); INSERT INTO result VALUES (result_seq.NEXTVAL, v_name, v_result); DBMS_OUTPUT.PUT_LINE('Student ' || v_name || ' is in ' || v_result); EXCEPTION WHEN NO_DATA_FOUND THEN DBMS_OUTPUT.PUT_LINE('Student not found.'); END;
+
+Chit 11 – Row Level BEFORE Trigger (Library Audit)
+CREATE OR REPLACE TRIGGER trg_before_lib BEFORE UPDATE OR DELETE ON library FOR EACH ROW BEGIN IF UPDATING THEN INSERT INTO library_audit VALUES (:OLD.book_id, :OLD.book_name, 'Updated', SYSDATE); ELSIF DELETING THEN INSERT INTO library_audit VALUES (:OLD.book_id, :OLD.book_name, 'Deleted', SYSDATE); END IF; END;
+
+Chit 12 – Row Level AFTER Trigger (Library Audit)
+CREATE OR REPLACE TRIGGER trg_after_lib AFTER UPDATE OR DELETE ON library FOR EACH ROW BEGIN IF UPDATING THEN INSERT INTO library_audit VALUES (:OLD.book_id, :OLD.book_name, 'Updated after', SYSDATE); ELSIF DELETING THEN INSERT INTO library_audit VALUES (:OLD.book_id, :OLD.book_name, 'Deleted after', SYSDATE); END IF; END;
+
+--------------------------------------
+SECTION 3: MONGODB CHITS ANSWERS
+--------------------------------------
+
+Chit 9 – orderinfo collection
+use mydb; db.createCollection("orderinfo"); db.orderinfo.insertMany([{cust_id:123,cust_name:"abc",status:"A",price:250},{cust_id:124,cust_name:"xyz",status:"B",price:700},{cust_id:125,cust_name:"pqr",status:"A",price:500}]);
+//Q1 avg price for each customer with status A db.orderinfo.aggregate([{$match:{status:"A"}},{$group:{_id:"$cust_id",avgPrice:{$avg:"$price"}}}]);
+//Q2 status for price between 100 and 1000 db.orderinfo.find({price:{$gte:100,$lte:1000}},{status:1});
+//Q3 customers info without _id db.orderinfo.find({},{_id:0});
+//Q4 create index db.orderinfo.createIndex({cust_id:1}); db.orderinfo.getIndexes();
+
+Chit 13 – movies collection
+use moviedb; db.createCollection("movies"); db.movies.insertMany([{name:"Movie1",type:"action",budget:1000000,producer:{name:"producer1",address:"PUNE"}},{name:"Movie2",type:"drama",budget:80000,producer:{name:"producer2",address:"MUMBAI"}}]);
+//Q1 movie budget>100000 db.movies.find({budget:{$gt:100000}},{name:1});
+//Q2 producer lives in Pune db.movies.find({"producer.address":"PUNE"},{"producer.name":1});
+//Q3 update type action→horror db.movies.updateMany({type:"action"},{$set:{type:"horror"}});
+//Q4 movies by producer1 db.movies.find({"producer.name":"producer1"},{"producer":1});
+
+Chit 14 – Teachers, Department, Students
+use collegedb; db.createCollection("teachers"); db.createCollection("department"); db.createCollection("students"); db.teachers.insertMany([{Tname:"Amit",dno:1,Experience:5,Salary:12000,Date_of_Joining:"2020-02-02"},{Tname:"Ravi",dno:2,Experience:3,Salary:9000,Date_of_Joining:"2021-03-03"}]); db.department.insertMany([{Dno:1,Dname:"CS"},{Dno:2,Dname:"IT"}]); db.students.insertMany([{Sname:"xyz",Roll_No:2,Class:"SE"},{Sname:"abc",Roll_No:5,Class:"FE"}]);
+//Q1 create+insert above done
+//Q2 teachers dno=2 salary>=10000 db.teachers.find({dno:2,Salary:{$gte:10000}});
+//Q3 student Roll_no=2 or name xyz db.students.find({$or:[{Roll_No:2},{Sname:"xyz"}]});
+//Q4 update student name roll_no=5 db.students.updateOne({Roll_No:5},{$set:{Sname:"updated"}});
+//Q5 delete class FE db.students.deleteMany({Class:"FE"});
+//Q6 index db.students.createIndex({Sname:1});
+
+Chit 15 – Institute→Students
+use institute; db.createCollection("students"); db.students.insertMany([{RollNo:1,StudentName:"Amit",Age:16,Branch:"CS",Address:{City:"Pune",State:"MH"},Hobbies:["Reading","Music"]},{RollNo:2,StudentName:"Ravi",Age:17,Branch:"IT",Address:{City:"Nashik",State:"MH"},Hobbies:["Cricket"]},{RollNo:3,StudentName:"Ankita",Age:18,Branch:"Computer",Address:{City:"Pune",State:"MH"},Hobbies:["Dance"]}]);
+//Q4 display all db.students.find();
+//Q5 age>15 db.students.find({Age:{$gt:15}});
+//Q6 sort by name db.students.find().sort({StudentName:1});
+//Q7 update branch computer rollno3 db.students.updateOne({RollNo:3},{$set:{Branch:"Computer"}});
+//Q8 remove rollno1 db.students.deleteOne({RollNo:1});
+//Q9 name starts with A db.students.find({StudentName:/^A/});
+//Q10 count docs db.students.countDocuments();
+//Q11 first5 db.students.find().limit(5);
+//Q12 all except first3 db.students.find().skip(3);
+//Q13 Pune students db.students.find({"Address.City":"Pune"});
+//Q14 only names db.students.find({},{StudentName:1,_id:0});
+//Q15 drop collection db.students.drop();
+
+Chit 16 – department db with aggregation & indexing
+use department; db.createCollection("teacher"); db.teacher.insertMany([{name:"Amit",department:"CS",experience:5,salary:20000},{name:"Rita",department:"IT",experience:3,salary:15000},{name:"Raj",department:"CS",experience:7,salary:25000}]);
+//Q3 dept wise avg salary db.teacher.aggregate([{$group:{_id:"$department",avgSal:{$avg:"$salary"}}}]);
+//Q4 count of employees per dept db.teacher.aggregate([{$group:{_id:"$department",count:{$sum:1}}}]);
+//Q5 dept wise min salary db.teacher.aggregate([{$group:{_id:"$department",minSal:{$min:"$salary"}}}]);
+//Q6 index+drop db.teacher.createIndex({department:1}); db.teacher.dropIndex("department_1");
+
+Chit 18 – city mapreduce
+use citydb; db.createCollection("city"); db.city.insertMany([{city:"pune",type:"urban",state:"MH",population:5600000},{city:"nashik",type:"urban",state:"MH",population:1800000},{city:"nagpur",type:"urban",state:"MH",population:2400000}]);
+//Q1 statewise population db.city.mapReduce(function(){emit(this.state,this.population);},function(key,vals){return Array.sum(vals);},{out:"statepop"}); db.statepop.find();
+//Q2 citywise db.city.mapReduce(function(){emit(this.city,this.population);},function(key,vals){return Array.sum(vals);},{out:"citypop"}); db.citypop.find();
+//Q3 typewise db.city.mapReduce(function(){emit(this.type,this.population);},function(key,vals){return Array.sum(vals);},{out:"typepop"}); db.typepop.find();
+
+Chit 20 – Indexing + Aggregation
+use mongoagg; db.createCollection("student"); db.student.insertMany([{Rollno:1,name:"Navin",subject:"DMSA",marks:78},{Rollno:2,name:"Anusha",subject:"OSD",marks:75},{Rollno:3,name:"Ravi",subject:"TOC",marks:69},{Rollno:4,name:"Veena",subject:"TOC",marks:70},{Rollno:5,name:"Pravini",subject:"OSD",marks:80},{Rollno:6,name:"Reena",subject:"DMSA",marks:50},{Rollno:7,name:"Geeta",subject:"CN",marks:90},{Rollno:8,name:"Akash",subject:"CN",marks:85}]);
+//Q1 max marks db.student.aggregate([{$group:{_id:"$subject",maxMarks:{$max:"$marks"}}}]);
+//Q2 min marks db.student.aggregate([{$group:{_id:"$subject",minMarks:{$min:"$marks"}}}]);
+//Q3 sum db.student.aggregate([{$group:{_id:"$subject",sumMarks:{$sum:"$marks"}}}]);
+//Q4 avg db.student.aggregate([{$group:{_id:"$subject",avgMarks:{$avg:"$marks"}}}]);
+//Q5 first record db.student.aggregate([{$group:{_id:"$subject",firstRec:{$first:"$name"}}}]);
+//Q6 last record db.student.aggregate([{$group:{_id:"$subject",lastRec:{$last:"$name"}}}]);
+//Q7 count db.student.aggregate([{$group:{_id:"$subject",count:{$sum:1}}}]);
+//Index db.student.createIndex({name:1}); db.student.createIndex({subject:1,marks:-1});
+
+Chit 21 – orderinfo complex index
+use orderdb; db.createCollection("orderinfo"); db.orderinfo.insertMany([{cust_id:123,cust_name:"abc",status:"A",price:250},{cust_id:124,cust_name:"xyz",status:"B",price:450}]);
+//Q1 add Age db.orderinfo.updateMany({},{$set:{Age:25}});
+//Q2 create complex index db.orderinfo.createIndex({cust_id:1,status:1},{unique:true,dropDups:true});
+//Q3 avg price per customer group by status db.orderinfo.aggregate([{$group:{_id:"$status",avgPrice:{$avg:"$price"}}}]);
+//Q4 change name where status B db.orderinfo.updateMany({status:"B"},{$set:{cust_name:"updated"}});
+
+Chit 22 – orderinfo updates
+use ordertest; db.createCollection("orderinfo"); db.orderinfo.insertMany([{cust_id:123,cust_name:"abc",status:"A",price:250},{cust_id:124,cust_name:"pqr",status:"B",price:400}]);
+//Q1 price 250-450 db.orderinfo.find({price:{$gte:250,$lte:450}},{cust_name:1});
+//Q2 increment/decrement db.orderinfo.updateOne({cust_id:123},{$inc:{price:10}}); db.orderinfo.updateOne({cust_id:124},{$inc:{price:-5}});
+//Q3 remove one field db.orderinfo.updateMany({},{$unset:{status:""}});
+//Q4 name whose status A or price=250 db.orderinfo.find({$or:[{status:"A"},{price:250}]},{cust_name:1});
+
+--------------------------------------
+SECTION 4: FIXED + NEWLY ADDED CHITS (8, 10, 23, Fix for 4)
+--------------------------------------
+
+
+Chit 4 – (Fixed Q5)
+-- Fixed Q5: Find names of students from computer department that take 'DBMS' courses
+SELECT s.name FROM student s
+JOIN takes t ON s.s_id = t.s_id
+JOIN course c ON t.course_id = c.course_id
+WHERE s.dept_name='computer' AND c.title='DBMS';
+
+Chit 8 – teaches, student, instructor, course
+CREATE TABLE teaches(T_ID INT, course_id INT, sec_id INT, semester VARCHAR(10), year INT);
+CREATE TABLE student(S_ID INT, name VARCHAR(20), dept_name VARCHAR(20), tot_cred INT);
+CREATE TABLE instructor(T_ID INT, name VARCHAR(20), dept_name VARCHAR(20), salary INT);
+CREATE TABLE course(course_id INT, title VARCHAR(20), dept_name VARCHAR(20), credits INT);
+
+--Q1 instructors who taught courses semester-wise
+SELECT DISTINCT i.name, t.semester, t.year
+FROM instructor i
+JOIN teaches t ON i.T_ID = t.T_ID
+ORDER BY t.year, t.semester;
+
+--Q2 create view on student details
+CREATE VIEW student_view AS SELECT * FROM student;
+
+--Q3 rename dept_name to department_name
+ALTER TABLE student RENAME COLUMN dept_name TO department_name;
+
+--Q4 delete student whose department is NULL
+DELETE FROM student WHERE department_name IS NULL;
+
+Chit 10 – Java + MongoDB Connectivity
+import com.mongodb.client.*;
+import org.bson.Document;
+
+public class MongoDBConnect {
+    public static void main(String[] args) {
+        try (MongoClient client = MongoClients.create("mongodb://localhost:27017")) {
+            MongoDatabase db = client.getDatabase("Institute");
+            db.createCollection("Students");
+
+            MongoCollection<Document> col = db.getCollection("Students");
+
+            // Insert document
+            col.insertOne(new Document("RollNo", 1).append("Name", "Amit").append("Age", 20).append("Branch", "CS"));
+
+            // Display data
+            for (Document doc : col.find()) {
+                System.out.println(doc.toJson());
+            }
+
+            // Update document
+            col.updateOne(new Document("Name", "Amit"), new Document("$set", new Document("Branch", "IT")));
+
+            // Remove document
+            col.deleteOne(new Document("RollNo", 1));
+        }
+    }
+}
+
+Chit 23 – MySQL + Java Connectivity (Two-Tier)
+import java.sql.*;
+
+public class EmployeeDB {
+    public static void main(String[] args) {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/testdb", "root", "password");
+            Statement st = con.createStatement();
+
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS Employee(SSN INT PRIMARY KEY, Ename VARCHAR(20), state VARCHAR(20), salary INT)");
+            st.executeUpdate("INSERT INTO Employee VALUES(101,'Amit','MH',40000),(102,'Ravi','GJ',35000)");
+            ResultSet rs = st.executeQuery("SELECT * FROM Employee WHERE SSN=101");
+            while(rs.next()){
+                System.out.println(rs.getString("Ename") + " " + rs.getInt("salary"));
+            }
+            st.executeUpdate("UPDATE Employee SET state='TN' WHERE state='MH'");
+            st.executeUpdate("DELETE FROM Employee WHERE state='Gujrat'");
+            con.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+}
